@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.OnOverflow;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,21 +38,26 @@ public class ReceiverModule {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_JSON)
     public Response jsonReceiver(@PathParam("producerReference") String producerReference, String content, @Context HttpHeaders headers) {
-        DirectorInformation dir = new DirectorInformation("ReceiverAPIModule");
+        ConfigJsonObject dir = new ConfigJsonObject("ReceiverAPIModule");
 
         MultivaluedMap<String, String> rh = headers.getRequestHeaders();
         List<String> contentType = rh.get("Content-Type");
-        if (contentType.contains("application/json")) {
-            publishJson(dir,producerReference, content);
-        } else {
-            publishJson(dir,producerReference, XML.toJSONObject(content).toString());
+        try {
+            if (contentType.contains("application/json")) {
+                publishJson(dir, producerReference, content);
+            } else {
+                publishJson(dir, producerReference, XML.toJSONObject(content).toString());
+            }
+        } catch (Exception e) {
+            System.out.println(e);
         }
+
         return Response.ok("Succes").build();
     }
 
-    public void publishJson(DirectorInformation dir,String producerReference, String content) {
+    public void publishJson(ConfigJsonObject dir, String producerReference, String content) throws IOException {
         dir.convertJsonToEntity(content);
-        dir.getJsonMap().put("producerReference", producerReference);
-        jsonOutgoing.send(dir.convertMapToJson(dir.getJsonMap()));
+        dir.addJsonObject("producerReference", producerReference);
+        jsonOutgoing.send(dir.getJsonObjectString());
     }
 }
