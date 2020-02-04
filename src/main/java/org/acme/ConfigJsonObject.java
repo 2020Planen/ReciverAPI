@@ -1,5 +1,7 @@
 package org.acme;
 
+import org.acme.jsonObjectMapper.Message;
+import org.acme.jsonObjectMapper.Condition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -25,7 +27,7 @@ import com.google.gson.stream.MalformedJsonException;
  *
  * @author Magnus
  */
-public class ConfigJsonObject {
+public class ConfigJsonObject{
 
     Gson gson = new Gson();
     private ArrayList<Condition> conditionsList = new ArrayList<>();
@@ -91,7 +93,7 @@ public class ConfigJsonObject {
         } else if (value instanceof JsonArray) {
             handleJsonArray((JsonArray) value);
         } else {
-            System.out.println("Value: {0}" + value);
+//            System.out.println("Value: {0}" + value);
         }
     }
 
@@ -104,8 +106,8 @@ public class ConfigJsonObject {
     private void handleJsonObject(JsonObject jsonObject) {
         jsonObject.keySet().forEach(key -> {
             Object value = jsonObject.get(key);
-            key.toLowerCase();
-            System.out.println("Key: {0}" + key);
+            key. toLowerCase();
+//            System.out.println("Key: {0}" + key);
             handleValue(value);
         });
     }

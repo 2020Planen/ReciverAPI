@@ -1,15 +1,11 @@
 package org.acme;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.OnOverflow;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -19,9 +15,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import org.json.XML;
+import org.acme.jsonObjectMapper.Message;
 
 @Path("/receiver")
 public class ReceiverModule {
@@ -38,26 +33,32 @@ public class ReceiverModule {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_JSON)
     public Response jsonReceiver(@PathParam("producerReference") String producerReference, String content, @Context HttpHeaders headers) {
-        ConfigJsonObject dir = new ConfigJsonObject("ReceiverAPIModule");
+        JsonParser jsonParser = new JsonParser();
+        Message message = new Message("ReciverModule");
 
+        JsonObject json = (JsonObject) jsonParser.parse(content);
+
+        message.validation("address", json.get("address").getAsString());
+        message.validation("name", json.get("name").getAsString());
+        message.validation("city", json.get("city").getAsString());
+        message.validation("phone", json.get("phone").getAsString());
+        message.validation("zip", json.get("zip").getAsInt());
+        message.setData(json);
+        message.setProducerReference(producerReference);
+
+        message.sendToKafkaQue();
+
+        /*
         MultivaluedMap<String, String> rh = headers.getRequestHeaders();
         List<String> contentType = rh.get("Content-Type");
-        try {
-            if (contentType.contains("application/json")) {
-                publishJson(dir, producerReference, content);
-            } else {
-                publishJson(dir, producerReference, XML.toJSONObject(content).toString());
-            }
-        } catch (Exception e) {
-            System.out.println(e);
+        if (contentType.contains("application/json")) {
+            pg.appendJson("producerReference", producerReference);
+            pg.appendJson("data", content);
+            pg.routingSlipDirector();
+            jsonOutgoing.send(pg.getJsonMessageString());
         }
-
-        return Response.ok("Succes").build();
+         */
+        return Response.ok(gson.toJson(message)).build();
     }
 
-    public void publishJson(ConfigJsonObject dir, String producerReference, String content) throws IOException {
-        dir.convertJsonToEntity(content);
-        dir.addJsonObject("producerReference", producerReference);
-        jsonOutgoing.send(dir.getJsonObjectString());
-    }
 }
