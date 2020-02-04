@@ -1,6 +1,5 @@
 package org.acme.jsonObjectMapper;
 
-import java.util.Map;
 
 /**
  *

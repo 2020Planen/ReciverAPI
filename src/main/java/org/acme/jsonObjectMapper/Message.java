@@ -2,10 +2,9 @@ package org.acme.jsonObjectMapper;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -19,9 +18,11 @@ import org.apache.kafka.clients.producer.RecordMetadata;
  */
 public class Message {
 
-    private JsonObject data;
+    private Data data;
     private ArrayList<Log> logs = new ArrayList<>();
     private ArrayList<Condition> conditionsList = new ArrayList<>();
+    private ArrayList<Condition> usedConditionsList = new ArrayList<>();
+    private String idDB;
     private String producerReference;
     private MetaData metaData;
     private ErrorLog errorLog;
@@ -29,31 +30,48 @@ public class Message {
     private transient Log currentLog;
     private transient Gson gson = new Gson();
 
-    public Message(String moduleName) {
-        startLog(moduleName);
+    public Message() {
         this.metaData = new MetaData();
         this.errorLog = new ErrorLog();
     }
 
-    private void startLog(String moduleName) {
+    public void startLog(String moduleName) {
         currentLog = new Log(moduleName, date.toString(), System.currentTimeMillis(), null, null);
     }
 
-    private void endLog() {
+    public void endLog() {
+        System.out.println("---------------------------------- " + System.currentTimeMillis());
         currentLog.setEndTime(System.currentTimeMillis());
         currentLog.setTotalTime();
+
         logs.add(currentLog);
+    }
+
+    public ArrayList<Condition> getUsedConditionsList() {
+        return usedConditionsList;
+    }
+
+    public void setUsedConditionsList(ArrayList<Condition> usedConditionsList) {
+        this.usedConditionsList = usedConditionsList;
+    }
+
+    public String getIdDB() {
+        return idDB;
+    }
+
+    public void setIdDB(String idDB) {
+        this.idDB = idDB;
     }
 
     public ArrayList<Condition> getConditionsList() {
         return conditionsList;
     }
 
-    public JsonObject getData() {
+    public Data getData() {
         return data;
     }
 
-    public void setData(JsonObject data) {
+    public void setData(Data data) {
         this.data = data;
     }
 
@@ -117,9 +135,9 @@ public class Message {
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         endLog();
-
+        Condition condition = getHighestPriorityCondition();
         Producer<String, String> producer = new KafkaProducer<String, String>(config);
-        producer.send(new ProducerRecord<String, String>("entry", gson.toJson(this)), new Callback() {
+        producer.send(new ProducerRecord<String, String>(condition.getTopic(), gson.toJson(this)), new Callback() {
             @Override
             public void onCompletion(RecordMetadata rm, Exception excptn) {
                 if (excptn != null) {
@@ -128,6 +146,7 @@ public class Message {
             }
         });
         producer.close();
+        removeHighestPriorityCondition(condition);
     }
 
     private void sendToKafkaErrorQue() {
@@ -145,7 +164,7 @@ public class Message {
             @Override
             public void onCompletion(RecordMetadata rm, Exception excptn) {
                 if (excptn != null) {
-                    System.out.println("-------------onFailedQue------------------");
+                    System.out.println("-------------onFailedErrorQue------------------");
                 }
             }
         });
@@ -155,5 +174,22 @@ public class Message {
     public void handleError(Exception e) {
         errorLog.setStackTrace(e);
         sendToKafkaErrorQue();
+    }
+
+    private Condition getHighestPriorityCondition() {
+        if (getConditionsList().size() == 1) {
+            return getConditionsList().get(0);
+        } else {
+            return getConditionsList().stream().max(Comparator.comparingDouble(Condition::getPriority)).get();
+        }
+    }
+
+    private void removeHighestPriorityCondition(Condition condition) {
+        for (int i = 0; i < getConditionsList().size(); i++) {
+            if (getConditionsList().get(i).getTopic().equals(condition.getTopic())) {
+                getUsedConditionsList().add(getConditionsList().get(i));
+                getConditionsList().remove(i);
+            }
+        }
     }
 }

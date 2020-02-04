@@ -10,10 +10,6 @@ public class ConfigJson extends Message {
 
     private Condition highestCondition;
 
-    public ConfigJson(String moduleName) {
-        super(moduleName);
-    }
-
     private Condition getHighestPriorityCondition() {
         if (getConditionsList().size() == 1) {
             return getConditionsList().get(0);
