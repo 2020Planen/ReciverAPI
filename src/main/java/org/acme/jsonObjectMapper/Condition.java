@@ -1,19 +1,29 @@
 package org.acme.jsonObjectMapper;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Magnus
  */
 public class Condition {
-    private String field,action,value,topic;
-    double priority;
 
-    public Condition(String field, String action, String value, String topic, double priority) {
+    private String field, action, topic;
+    private Object value;
+    double priority;
+    private boolean lastCondi;
+    private ArrayList<Condition> conditions = new ArrayList<>();
+
+    public Condition() {
+    }
+
+    public Condition(String field, String action, String topic, Object value, double priority, boolean lastCondi) {
         this.field = field;
         this.action = action;
-        this.value = value;
         this.topic = topic;
+        this.value = value;
         this.priority = priority;
+        this.lastCondi = lastCondi;
     }
 
     public String getField() {
@@ -32,20 +42,20 @@ public class Condition {
         this.action = action;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
     public String getTopic() {
         return topic;
     }
 
     public void setTopic(String topic) {
         this.topic = topic;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 
     public double getPriority() {
@@ -56,6 +66,22 @@ public class Condition {
         this.priority = priority;
     }
 
+    public boolean isLastCondi() {
+        return lastCondi;
+    }
+
+    public void setLastCondi(boolean lastCondi) {
+        this.lastCondi = lastCondi;
+    }
+
+    public ArrayList<Condition> getConditions() {
+        return conditions;
+    }
+
+    public void setConditions(ArrayList<Condition> conditions) {
+        this.conditions = conditions;
+    }
+    
     
 
 }
