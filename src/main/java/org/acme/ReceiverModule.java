@@ -35,25 +35,17 @@ public class ReceiverModule {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_JSON)
     public Response jsonReceiver(@PathParam("producerReference") String producerReference, @ValidMessage Message message) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        try {
-//            Condition condi = message.validateCondtionSlip();
-//            System.out.println(condi.getValue());
-        } catch (Exception e) {
-            System.out.println("_____________________________________________");
-            System.out.println(e);
-            //e.printStackTrace();
-        }
-
         message.startLog("ReciverAPI");
         message.setEntryTime(System.currentTimeMillis());
         message.setProducerReference(producerReference);
         message.endLog();
-        try {
-        message.sendToKafkaQue();
-        } catch (Exception e) {
-            System.out.println("ss");
-        }
-//        jsonOutgoing.send(gson.toJson(message));
+        
+//        try {
+//            message.sendToKafkaQue();
+//        } catch (Exception e) {
+//            System.out.println(e.getLocalizedMessage());
+//        }
+        jsonOutgoing.send(gson.toJson(message)); 
         return Response.ok(gson.toJson(message)).build();
     }
 

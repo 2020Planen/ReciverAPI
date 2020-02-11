@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -127,10 +126,7 @@ public class Message {
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         Condition condition = validateCondtionSlip();
-        updateConditionList(condition);
-        if (conditionsList.isEmpty() || condition == null) {
-            sendToKafkaExitQue();
-        } else {
+        if (condition != null){
             Producer<String, String> producer = new KafkaProducer<String, String>(config);
             producer.send(new ProducerRecord<String, String>(condition.getTopic(), gson.toJson(this)), new Callback() {
                 @Override
@@ -208,10 +204,13 @@ public class Message {
 
     private void updateConditionList(Condition condition) {
         try {
-            conditionsList = condition.getConditions();
+            System.out.println("Condilist__old__________________________________:");
+            conditionsList.forEach(action->System.out.println(action.getPriority()));
+            this.conditionsList = condition.getConditions();
+             System.out.println("Condilist__new__________________________________:");
+            conditionsList.forEach(action->System.out.println(action.getPriority()));
         } catch (NullPointerException e) {
-            System.out.println("In catch_________________");
-            conditionsList = new ArrayList<Condition>();
+            this.conditionsList = new ArrayList<Condition>();
         }
     }
 
@@ -219,8 +218,9 @@ public class Message {
         conditionsList.sort(Comparator.comparing(Condition::getPriority).reversed());
         for (Condition condition : conditionsList) {
             if (validateCondition(condition)) {
-                System.out.println("finds________________________________________________________________");
-                return condition;
+                Condition newCondition = condition;
+                updateConditionList(condition);
+                return newCondition;
             }
         }
         sendToKafkaExitQue();
@@ -244,7 +244,6 @@ public class Message {
                 }
                 parameterType = m.getParameterTypes();
             }
-            System.out.println(parameterType);
             Method method = clsString.getDeclaredMethod(condition.getAction(), parameterType);
 
             boolean condtionValidationState = (boolean) method.invoke(valueOfField, condition.getValue());
