@@ -5,8 +5,9 @@ package org.acme.jsonObjectMapper;
  * @author Magnus
  */
 public class MetaData {
-private String name,address,city,phone;
-private Integer zip;
+
+    private String name, address, city, phone;
+    private Integer zip;
 
     public String getName() {
         return name;
@@ -47,5 +48,5 @@ private Integer zip;
     public void setZip(int zip) {
         this.zip = zip;
     }
-    
+
 }

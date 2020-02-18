@@ -18,7 +18,7 @@ public class Log {
         this.endTime = endTime;
         this.totalTime = totalTime;
     }
-    
+
     public String getModuleName() {
         return moduleName;
     }
@@ -56,7 +56,7 @@ public class Log {
     }
 
     public void setTotalTime() {
-        this.totalTime = this.endTime-this.startTime;
+        this.totalTime = this.endTime - this.startTime;
     }
 
 }

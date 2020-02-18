@@ -30,6 +30,21 @@ public class ReceiverModule {
     @OnOverflow(value = OnOverflow.Strategy.BUFFER, bufferSize = 300)
     Emitter<String> jsonOutgoing;
 
+    /**
+     * Receives any given json object. Deserialize the object, into
+     * Message.class. Starts the log, and setting the producer reference.
+     * Serialize the Message.class back to json, and sending it to the entry que
+     * for further handling.
+     *
+     * @param producerReference Which post service has been used
+     * @param message Deserialize the json Object, and maps the json into the
+     * Message.class
+     * @return Response code(200), and returns the jsonify Message.class
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws NoSuchMethodException
+     */
     @POST
     @Path("{producerReference}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -39,12 +54,8 @@ public class ReceiverModule {
         message.setEntryTime(System.currentTimeMillis());
         message.setProducerReference(producerReference);
         message.endLog();
-        
-//        try {
-//            message.sendToKafkaQue();
-//        } catch (Exception e) {
-//            System.out.println(e.getLocalizedMessage());
-//        }
+
+
         jsonOutgoing.send(gson.toJson(message)); 
         return Response.ok(gson.toJson(message)).build();
     }

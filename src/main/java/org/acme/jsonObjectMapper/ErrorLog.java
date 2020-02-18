@@ -5,8 +5,8 @@ package org.acme.jsonObjectMapper;
  * @author Magnus
  */
 public class ErrorLog {
-private String stackTrace;
 
+    private String stackTrace;
 
     public String getStackTrace() {
         return stackTrace;

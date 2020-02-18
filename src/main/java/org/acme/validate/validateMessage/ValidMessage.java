@@ -22,10 +22,22 @@ import javax.validation.Payload;
 @Documented
 public @interface ValidMessage {
 
+    /**
+     *
+     * @return Default message if no specific custom message has been set
+     */
     String message() default "Must not be null";
 
+    /**
+     *
+     * @return Nothing if if no specific custom Class's has been set
+     */
     Class<?>[] groups() default {};
 
+    /**
+     *
+     * @return Nothing if if no specific custom Class's has been set
+     */
     Class<? extends Payload>[] payload() default {};
 
 }

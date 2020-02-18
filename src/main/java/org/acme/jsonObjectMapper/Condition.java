@@ -1,87 +1,84 @@
 package org.acme.jsonObjectMapper;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Magnus
  */
 public class Condition {
 
-    private String field, action, topic;
+    private String field, action;
     private Object value;
-    double priority;
-    private boolean lastCondi;
-    private ArrayList<Condition> conditions = new ArrayList<>();
 
+    /**
+     *
+     */
     public Condition() {
     }
 
-    public Condition(String field, String action, String topic, Object value, double priority, boolean lastCondi) {
+    /**
+     * All condition property must be set, for the validation process to be
+     * valid.
+     *
+     * @param field String of the class.foo that the reflection need to invoke.
+     * Example(MetaData.getAddress)
+     * @param action The foo for which the value and field should be validate
+     * on. Example (equals)
+     * @param value The value the user wants to validate on. Example
+     * (Nørrebrogade 155)
+     */
+    public Condition(String field, String action, Object value) {
         this.field = field;
         this.action = action;
-        this.topic = topic;
         this.value = value;
-        this.priority = priority;
-        this.lastCondi = lastCondi;
     }
 
+    /**
+     * @return Class & function (MetaData.getAddress) for the given information
+     * to analyze
+     */
     public String getField() {
         return field;
     }
 
+    /**
+     * Adjustment to which metaData property is to be selected.
+     *
+     * @param field Take the class & function as a String(MetaData.getAddress)
+     */
     public void setField(String field) {
         this.field = field;
     }
 
+    /**
+     * @return Which action is need to for validation as String.
+     */
     public String getAction() {
         return action;
     }
 
+    /**
+     * Adjustment to which foo to validate on the given value of field property.
+     *
+     * @param action Setting action is need to for validation as String.
+     */
     public void setAction(String action) {
         this.action = action;
     }
 
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
+    /**
+     * @return The object which should be validate on.
+     */
     public Object getValue() {
         return value;
     }
 
+    /**
+     * Setting the value to be validated on.
+     *
+     * @param value Sets any kind of object that needs to be validate
+     */
     public void setValue(Object value) {
         this.value = value;
     }
-
-    public double getPriority() {
-        return priority;
-    }
-
-    public void setPriority(double priority) {
-        this.priority = priority;
-    }
-
-    public boolean isLastCondi() {
-        return lastCondi;
-    }
-
-    public void setLastCondi(boolean lastCondi) {
-        this.lastCondi = lastCondi;
-    }
-
-    public ArrayList<Condition> getConditions() {
-        return conditions;
-    }
-
-    public void setConditions(ArrayList<Condition> conditions) {
-        this.conditions = conditions;
-    }
-    
-    
 
 }
