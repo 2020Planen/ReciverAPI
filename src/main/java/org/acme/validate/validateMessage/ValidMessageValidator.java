@@ -13,24 +13,16 @@ public class ValidMessageValidator implements ConstraintValidator<ValidMessage, 
 
     private ValidMessage annotation;
 
-    /**
-     *
-     * @param constraintAnnotation
-     */
+  
     @Override
     public void initialize(ValidMessage constraintAnnotation) {
         this.annotation = constraintAnnotation;
     }
-
-    /**
-     *
-     * @param message
-     * @param context
-     * @return
-     */
+ 
     @Override
     public boolean isValid(Message message, ConstraintValidatorContext context) {
         String nullObject = "";
+
         boolean isValid = true;
         if (!(message instanceof Message)) {
             throw new IllegalArgumentException("@Message only applies to Message");
@@ -43,10 +35,13 @@ public class ValidMessageValidator implements ConstraintValidator<ValidMessage, 
             isValid = false;
             nullObject = "Data";
         }
+        String moduleName = annotation.moduleName();
+        message.startLog(moduleName);
         if (!isValid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate("Dosn't contain json object " + nullObject).addConstraintViolation();
         }
+
         return isValid;
     }
 

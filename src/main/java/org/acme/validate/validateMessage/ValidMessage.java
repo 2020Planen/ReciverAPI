@@ -22,6 +22,8 @@ import javax.validation.Payload;
 @Documented
 public @interface ValidMessage {
 
+    String moduleName();
+    
     /**
      *
      * @return Default message if no specific custom message has been set

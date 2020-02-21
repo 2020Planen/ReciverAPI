@@ -1,14 +1,11 @@
 package org.acme.jsonObjectMapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -36,6 +33,7 @@ public class Message {
     private transient Properties config = new Properties();
 
     public Message() {
+        
     }
 
     public RoutingSlip getRoutingSlip() {
@@ -134,6 +132,7 @@ public class Message {
 
         Route route = routingSlip.validateRoutingSlip(metaData);
         if (route != null) {
+            endLog();
             Producer<String, String> producer = new KafkaProducer<String, String>(config);
             producer.send(new ProducerRecord<String, String>(route.getTopic(), gson.toJson(this)), new Callback() {
                 @Override
@@ -144,8 +143,12 @@ public class Message {
                 }
             });
             producer.close();
-        } else {
+        } else if (routingSlip.getRoutes().isEmpty()) {
+            endLog();
             sendToKafkaExitQue();
+        } else {
+            endLog();
+            sendToKafkaInvalidQue();
         }
     }
 
@@ -155,7 +158,7 @@ public class Message {
         config.put("acks", "all");
         config.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
+        endLog();
         Producer<String, String> producer = new KafkaProducer<String, String>(config);
         producer.send(new ProducerRecord<String, String>("error", gson.toJson(this)), new Callback() {
             @Override
@@ -168,15 +171,15 @@ public class Message {
         producer.close();
     }
 
-    private void sendToKafkaNoValidProducerReferenceQue() {
+    private void sendToKafkaInvalidQue() {
         config.put("bootstrap.servers", "cis-x.convergens.dk:9092");
         config.put("retries", 0);
         config.put("acks", "all");
         config.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
+        endLog();
         Producer<String, String> producer = new KafkaProducer<String, String>(config);
-        producer.send(new ProducerRecord<String, String>("no-valid-producer-reference", gson.toJson(this)), new Callback() {
+        producer.send(new ProducerRecord<String, String>("no-valid-routes", gson.toJson(this)), new Callback() {
             @Override
             public void onCompletion(RecordMetadata rm, Exception excptn) {
                 if (excptn != null) {
@@ -196,7 +199,7 @@ public class Message {
         config.put("acks", "all");
         config.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
+        endLog();
         Producer<String, String> producer = new KafkaProducer<String, String>(config);
         producer.send(new ProducerRecord<String, String>("exit", gson.toJson(this)), new Callback() {
             @Override
@@ -220,4 +223,10 @@ public class Message {
         sendToKafkaErrorQue();
     }
 
+    public Message populateMessage(String content) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectReader objectReader = objectMapper.readerForUpdating(this);
+        Message msg = objectReader.readValue(content);
+        return msg;
+    }
 }
